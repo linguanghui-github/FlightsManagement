@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.flights.dao.FlightMapper">
+	<!-- 查询所有城市信息  -->
+	<select id="findAllCity" resultType="City">
+		SELECT * FROM city
+	</select>
+	<!--根据起飞城市ID和到达城市ID查询航班信息 -->
+	<resultMap type="Flight" id="findflightsMap">
+		<id column="f_id" property="id"/>
+		<id column="arrivalTime" property="arrivalTime"/>
+		<id column="departureCity" property="departureCity"/>
+		<id column="arrivalCity" property="arrivalCity"/>
+		
+		<association property="city" javaType="City">
+			<id column="id" property="id"/>
+		</association>
+	</resultMap>
+	<select id="findflightsByDepartureIdAndArrivalId" resultMap="findflightsMap" parameterType="int">
+		SELECT f.id f_id, f.flightNo,c.cityName departureCityName,f.departureTime,ci.cityName arrivalCityName,
+		f.arrivalTime 
+		 FROM flight f 
+			INNER JOIN city c ON c.id = f.departureCity
+			INNER JOIN city ci ON ci.id = f.arrivalCity
+			<where>
+				<if test="depar!=null and depar!=0">
+					f.departureCity=#{depar}
+				</if>
+				<if test="arrival!=null and arrival!=0">
+					AND f.arrivalCity=#{arrival}
+				</if>
+			</where>
+	</select>
+	<!--航班记录数查询  -->
+	<select id="findCountFlight" parameterType="String" resultType="int">
+		SELECT COUNT(1) FROM flight where flightNo=#{flightNo}
+	</select>
+	<!-- 添加航班信息 -->
+	<insert id="addFlightInfo">
+		INSERT INTO flight (flightNo,departureCity,departureTime,arrivalCity,arrivalTime) 
+		VALUES(#{flightNo},#{departureCity},#{departureTime},#{arrivalCity},#{arrivalTime}) 
+	</insert>
+</mapper>

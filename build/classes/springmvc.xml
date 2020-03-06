@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+
+	<!-- 配置访问路径 -->
+	
+	<!-- 扫描springMVC的controller层的注解 -->
+	<context:component-scan base-package="cn.flights.controller"/>
+	<bean id="myConversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+		<property name="converters">
+			<list>
+				<bean class="cn.flights.unitls.StringToDateConverter">
+					<constructor-arg type="java.lang.String" value="yyyy-MM-dd HH:mm:ss"/>
+				</bean>
+			</list>
+		</property>
+	</bean>
+	<!-- 注入注解驱动 -->
+	<mvc:annotation-driven conversion-service="myConversionService">
+		<mvc:message-converters>
+			<!-- json中文乱码处理 -->
+    		<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+    			<property name="supportedMediaTypes">
+    				<list>
+    					<value>application/json;charset=UTF-8</value>
+    				</list>
+    			</property>
+    		</bean>
+    		<!-- json默认将日期解析成毫秒数，处理毫秒数问题 -->
+    		<bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+    			<property name="supportedMediaTypes">
+    				<list>
+    					<value>text/html;charset=UTF-8</value>
+    					<value>application/json</value>
+    				</list>
+    			</property>
+    			<property name="features">
+    				<list>
+    				 <!--   Date的日期转换器 -->
+    				  <value>WriteDateUseDateFormat</value>
+    				</list>
+    			</property>
+    		</bean>
+    	</mvc:message-converters>
+	</mvc:annotation-driven>
+	<!-- 前缀+逻辑视图名+后缀 -->
+	<!-- 配置视图解析器 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- 前缀：页面存放的位置 -->
+		<property name="prefix" value="/WEB-INF/jsp/"></property>
+		<!-- 页面文件的后缀名称 -->
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+	<mvc:resources location="/statics/" mapping="/statics/**"></mvc:resources>
+		<!-- 文件上传 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 设置上传文件的最大尺寸为5MB -->
+		<property name="maxUploadSize">
+			<value>5242880</value>
+		</property>
+		<property name="defaultEncoding" value="UTF-8"></property>
+	</bean>
+	<!-- 拦截器 -->
+	<!-- <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/sys/**"/>
+			<bean class="cn.flights.interceptor.SystemInterceptor"/>
+		</mvc:interceptor>
+	</mvc:interceptors> -->
+	<!-- 全局异常处理 -->
+	<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="exceptionMappings">
+			<props>
+				<prop key="java.lang.Exception"></prop>
+			</props>
+		</property>
+	</bean>
+</beans>
